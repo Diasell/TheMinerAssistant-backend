@@ -46,3 +46,20 @@ def validate_user_registration(username, pswd, conf_pswd, photo):
         return {"is_valid": False, "responseData": response_data}
     else:
         return {"is_valid": True, "responseData": response_data}
+
+
+def get_pool_avg_hashrate(obj):
+    """
+    :param obj: {'h1': '1277.8', 'h3': '1241.9', 'h6': '1233.4', 'h12': '1093.0', 'h24': '996.2'} example
+    :return:  as old avg as possible avarage as float
+    """
+    value = 0.0
+    list_of_keys = list(obj)
+    list_of_keys.reverse()
+    for key in list_of_keys:
+        value = float(obj[key])
+        if value != 0.0:
+            return value
+    return value
+
+
