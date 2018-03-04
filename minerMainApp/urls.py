@@ -24,7 +24,7 @@ from mainApp.api.v1.auth import (
 
 from mainApp.api.v1.nanopool import (
     GetPools,
-    SaveWorkerStats,
+    SavePoolStats,
 )
 
 
@@ -34,6 +34,6 @@ urlpatterns = [
     url(r'^add_chat_id/$', AddChatIdView.as_view()),
     url(r'^login/$', LoginAPIView.as_view()),
 
-    url(r'^get_pools/$', GetPools.as_view()),
-    url(r'^save_worker_stats/$', SaveWorkerStats.as_view())
+    url(r'^nanopool/get_pools/$', GetPools.as_view()),
+    url(r'^nanopool/save_pool_stats/$', SavePoolStats.as_view())
 ]
