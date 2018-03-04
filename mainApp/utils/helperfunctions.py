@@ -40,7 +40,10 @@ def validate_user_registration(username, pswd, conf_pswd, photo):
     if photo and photo.size > (4096*1024):
         response_data["photo"] = u"Avatar size shouldn't be greater than 4MB. "
     if photo and not is_valid_image(photo):
-        response_data["photo"] += u"Supported formats are 'jpeg', 'jpg', 'png'"
+        if 'photo' in response_data:
+            response_data["photo"] += u"Supported formats are 'jpeg', 'jpg', 'png'"
+        else:
+            response_data["photo"] = u"Supported formats are 'jpeg', 'jpg', 'png'"
 
     if response_data:
         return {"is_valid": False, "responseData": response_data}

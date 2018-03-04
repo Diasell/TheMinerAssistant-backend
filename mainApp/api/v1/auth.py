@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #  import django services
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 
 # import rest framework services
 from rest_framework.authtoken.models import Token
@@ -72,6 +73,7 @@ class RegisterAPIView(APIView):
             token = Token.objects.get_or_create(user=new_user)[0]
             data = dict()
             data['Authorization'] = u"Token %s" % token
+            data['BotLink'] = u"https://telegram.me/MinerAssistantBot"
 
             response = create_response_scelet(u'success', u"User has been created",  data)
             return Response(response, status=status.HTTP_201_CREATED)
@@ -117,11 +119,12 @@ class LoginAPIView(APIView):
     """
     API that allows users login and get unique Token.
     """
-    authentication_classes = (BasicAuthentication,)
+    #authentication_classes = (BasicAuthentication,)
     permission_classes = (AllowAny,)
     serializer_class = LoginViewSerializer
 
-    def post(self, request, format=None):
+    def post(self, request):
+
         user = request.user
 
         if user.userprofilemodel.is_verified:
