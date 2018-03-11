@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models.userProfile import UserProfileModel
 
-from .models.worker import WorkerModel, PoolModel, WorkerStats
+from .models.worker import WorkerModel, PoolModel, WorkerStats, WorkerDownTime
 
 
 class ProfileModelInline(admin.StackedInline):
@@ -26,3 +26,4 @@ admin.site.register(User, UserAdmin)
 admin.site.register(WorkerModel)
 admin.site.register(PoolModel)
 admin.site.register(WorkerStats)
+admin.site.register(WorkerDownTime)

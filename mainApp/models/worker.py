@@ -15,31 +15,37 @@ class WorkerModel(models.Model):
     ideal_hashrate = models.FloatField(verbose_name=u"IdealHashRate", default=0.0)
 
     active = models.BooleanField(verbose_name=u"IsActive", default=True)
-    worker_name = models.CharField(
+    name = models.CharField(
         verbose_name=u"Worker Name",
         blank=True,
         max_length=25
     )
-    worker_teamviewer = models.CharField(
+    teamviewer = models.CharField(
         verbose_name=u"Worker TeamViewerID",
         blank=True,
         max_length=25
     )
-    pool = models.ForeignKey(u'PoolModel', verbose_name=u"Works For Pool", on_delete=models.DO_NOTHING)
+    pool = models.ForeignKey(u'PoolModel', verbose_name=u"Works For Pool", on_delete=models.CASCADE)
 
-    first_check_passed = models.BooleanField(verbose_name=u"First Check", default=True)
-    second_check_passed = models.BooleanField(verbose_name=u"Second Check", default=True)
-    third_check_passed = models.BooleanField(verbose_name=u"Third Check", default=True)
 
     possible_reboot_condition = models.BooleanField(verbose_name=u"In reboot", default=False)
     reboot_count = models.IntegerField(verbose_name=u"Reboot Count", default=0)
     last_reboot_time = models.DateTimeField(verbose_name=u"Last Reboot Time", blank=True, null=True)
-    worker_is_down = models.BooleanField(verbose_name=u"Down Status", default=False)
-    down_time_started = models.DateTimeField(verbose_name=u"Last Downtime started", blank=True, null=True)
+
+
+    is_down = models.BooleanField(verbose_name=u"Down Status", default=False)
 
 
     def __str__(self):
-        return  u"Worker: %s" % self.worker_name
+        return  u"Worker: %s" % self.name
+
+
+class WorkerDownTime(models.Model):
+
+    worker = models.ForeignKey(u"WorkerModel", verbose_name=u"worker", on_delete=models.CASCADE)
+    started = models.DateTimeField(verbose_name=u"Downtime started")
+    ended = models.DateTimeField(verbose_name=u"Downtime ended", blank=True, null=True)
+    active = models.BooleanField(verbose_name="Active", default=True)
 
 
 class WorkerStats(models.Model):
@@ -53,8 +59,23 @@ class WorkerStats(models.Model):
     avg_h12 = models.FloatField(verbose_name=u"Average 12h rate", default=0.0)
     avg_h24 = models.FloatField(verbose_name=u"Average daily rate", default=0.0)
 
+    def save(self, *args, **kwargs):
+
+        if self.id:
+            if self.hashrate == 0:
+                worker_is_down_check(self)
+            elif self.hashrate < self.worker.ideal_hashrate/2:
+                worker_low_hashrate_check(self)
+            else:
+                worker_is_fine(self)
+            super().save(*args, **kwargs)
+        else:
+            # Fisrt time object created only worker id and pool passed to constructor
+            # so no need to check for hashrate
+            super().save(*args, **kwargs)
+
     def __str__(self):
-        return u"Worker: %s" % self.worker.worker_name
+        return u"Worker: %s" % self.worker.name
 
 
 
@@ -92,7 +113,6 @@ class PoolModel(models.Model):
 
             workers_list = reply['data']['workers']
             create_workers(workers_list, self.address)
-            print("after super")
         else:
             super().save(*args, **kwargs)
 
@@ -108,12 +128,11 @@ def create_workers(worker_list, pool):
         hashrate = float(worker['hashrate'])
         new_worker = WorkerModel(
             active=hashrate>0,
-            worker_name=worker['id'],
+            name=worker['id'],
+            nano_id=worker['uid'],
             pool=PoolModel.objects.get(address=pool),
         )
         new_worker.save()
-        id = worker['id']
-        print(f"adding worker {id}")
         create_worker_stats(worker, new_worker)
 
 def create_worker_stats(worker_stats, worker_obj):
@@ -129,4 +148,48 @@ def create_worker_stats(worker_stats, worker_obj):
         avg_h24=float(worker_stats['h24'])
     )
     stats.save()
-    print(f"adding stats for {worker_obj.worker_name}")
+
+
+def worker_is_down_check(worker_stats_obj):
+    worker = worker_stats_obj.worker
+    worker_stats = WorkerStats.objects.filter(worker=worker)
+    if len(worker_stats) >= 2:
+        latest = WorkerStats.objects.filter(worker=worker).order_by('-last_share')[1]
+        if latest.hashrate == 0:
+            # worker seems to be down user should be notified
+            # TODO: implement user notification
+            print(worker.name + " is down")
+            worker.is_down = True
+            worker.possible_reboot_condition = False
+            down_time = WorkerDownTime(worker=worker, started=latest.last_share)
+            down_time.save()
+        else:
+            # worker in possible reboot state
+            print(worker.name + " in possible reboot")
+            worker.possible_reboot_condition = True
+            worker.reboot_count += 1
+            worker.last_reboot_time = worker_stats_obj.last_share
+
+        worker.save()
+    else:
+        pass
+
+
+def worker_low_hashrate_check(worker_stats_obj):
+    worker = worker_stats_obj.worker
+    print("checking low hashrate for " + worker.name)
+
+
+def worker_is_fine(worker_stats_obj):
+    worker = worker_stats_obj.worker
+    worker.is_down = False
+    worker.possible_reboot_condition = False
+    down_time = WorkerDownTime.objects.filter(worker = worker, active=True)
+    if down_time:
+        down_time[0].ended = worker_stats_obj.last_share
+        down_time[0].active = False
+        down_time[0].save()
+    worker.save()
+
+
+

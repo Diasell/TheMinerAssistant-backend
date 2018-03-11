@@ -67,8 +67,9 @@ class SavePoolStats(APIView):
 
             if workers_array:
                 for worker in workers_array:
-                    worker_obj = WorkerModel.objects.get_or_create(pool=pool, worker_name=worker['id'])[0]
-                    stats, created = WorkerStats.objects.get_or_create(worker=worker_obj, last_share=datetime.datetime.fromtimestamp(worker['lastshare']))
+                    worker_obj, worker_created = WorkerModel.objects.get_or_create(pool=pool, name=worker['id'], nano_id=worker['uid'])
+                    time = datetime.datetime.fromtimestamp(worker['lastshare'])
+                    stats, created = WorkerStats.objects.get_or_create(worker=worker_obj, last_share=time)
 
                     if created:
                             stats.hashrate=float(worker['hashrate'])
