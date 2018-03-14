@@ -54,15 +54,15 @@ class SavePoolStats(APIView):
 
     def post(self, request):
 
-        pool_id = request.data['account']
-        workers_array= request.data['workers']
+        pool_id = request.data["data"]['account']
+        workers_array= request.data["data"]['workers']
 
         pool = PoolModel.objects.get(address=pool_id)
         if pool:
-            pool.hashrate = float(request.data['hashrate'])
-            pool.avg_hasrate = float(request.data['avgHashrate']['h1'])
-            pool.balance = float(request.data['balance'])
-            pool.unconfirmed_balance = float(request.data['unconfirmed_balance'])
+            pool.hashrate = float(request.data["data"]['hashrate'])
+            pool.avg_hasrate = float(request.data["data"]['avgHashrate']['h1'])
+            pool.balance = float(request.data["data"]['balance'])
+            pool.unconfirmed_balance = float(request.data["data"]['unconfirmed_balance'])
             pool.save()
 
             if workers_array:
