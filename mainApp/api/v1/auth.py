@@ -125,14 +125,17 @@ class LoginAPIView(APIView):
 
     def post(self, request):
 
-        user = request.user
+        username = request.data["username"]
+        password = request.data["password"]
 
-        if user.userprofilemodel.is_verified:
+        user = authenticate(username=username, password=password)
+
+        if user:
             token = Token.objects.get_or_create(user=user)[0]
             data = UserSerializer(user).data
             data["Authorization"] = u"Token %s" % token
             response = create_response_scelet('success', 'Logged in successfully', data)
             return Response(response, status=status.HTTP_200_OK)
         else:
-            response = create_response_scelet('failed', 'User is not verified', {})
+            response = create_response_scelet('failed', 'User with such credentials not found', {})
             return Response(response, status=status.HTTP_401_UNAUTHORIZED)
