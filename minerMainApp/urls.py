@@ -15,6 +15,8 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 
 from mainApp.api.v1.auth import (
     RegisterAPIView,
@@ -29,11 +31,11 @@ from mainApp.api.v1.nanopool import (
 
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^register/$', RegisterAPIView.as_view()),
-    url(r'^add_chat_id/$', AddChatIdView.as_view()),
-    url(r'^login/$', LoginAPIView.as_view()),
+    url(r'^api/v1/admin/', admin.site.urls),
+    url(r'^api/v1/register/$', RegisterAPIView.as_view()),
+    url(r'^api/v1/add_chat_id/$', AddChatIdView.as_view()),
+    url(r'^api/v1/login/$', LoginAPIView.as_view()),
 
     url(r'^nanopool/get_pools/$', GetPools.as_view()),
     url(r'^nanopool/save_pool_stats/$', SavePoolStats.as_view())
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
