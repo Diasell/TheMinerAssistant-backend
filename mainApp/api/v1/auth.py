@@ -25,7 +25,7 @@ from mainApp.serializers.auth import (
 
 
 # import needed app models
-from mainApp.models.userProfile import UserProfileModel
+from mainApp.models.userProfile import UserProfile
 
 # import helper functions
 from mainApp.utils.helperfunctions import (
@@ -64,7 +64,7 @@ class RegisterAPIView(APIView):
             )
             new_user.save()
 
-            UserProfileModel(
+            UserProfile(
                 user=new_user,
                 phone_number=phone_number,
                 photo=photo
@@ -138,4 +138,38 @@ class LoginAPIView(APIView):
             return Response(response, status=status.HTTP_200_OK)
         else:
             response = create_response_scelet('failed', 'User with such credentials not found', {})
+            return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class OnLoginView(APIView):
+    """
+    User passes his  telegram chat_id that he got from the chat bot after giving him his phone number
+    """
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+
+        if (request.user):
+            user = request.user
+            response_data = {
+                'first_name': user.first_name,
+                'avatar': None,
+                'pools': []
+            }
+            if user.profile.photo:
+                response_data['avatar'] = user.profile.photo.url
+            pools = user.pool.all()
+            if pools:
+                for pool in pools:
+                    response_data['pools'].append({
+                        'name': pool.name,
+                        'address': pool.address
+                    })
+                response = create_response_scelet(u"success", "success", response_data)
+                return Response(response, status=status.HTTP_200_OK)
+
+        else:
+            response = create_response_scelet(u'failure', u'Unauthorized action', {})
             return Response(response, status=status.HTTP_401_UNAUTHORIZED)

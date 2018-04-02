@@ -21,7 +21,8 @@ from django.conf.urls.static import static
 from mainApp.api.v1.auth import (
     RegisterAPIView,
     AddChatIdView,
-    LoginAPIView
+    LoginAPIView,
+    OnLoginView
 )
 
 from mainApp.api.v1.nanopool import (
@@ -35,6 +36,7 @@ urlpatterns = [
     url(r'^api/v1/register/$', RegisterAPIView.as_view()),
     url(r'^api/v1/add_chat_id/$', AddChatIdView.as_view()),
     url(r'^api/v1/login/$', LoginAPIView.as_view()),
+    url(r'^api/v1/onlogin/$', OnLoginView.as_view()),
 
     url(r'^nanopool/get_pools/$', GetPools.as_view()),
     url(r'^nanopool/save_pool_stats/$', SavePoolStats.as_view())

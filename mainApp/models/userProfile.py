@@ -22,12 +22,12 @@ def user_directory_path(instance, filename):
     return 'user_{0}/{1}'.format(instance.user.id, filename)
 
 
-class UserProfileModel(models.Model):
+class UserProfile(models.Model):
     """
     User Profile model
     """
 
-    user = models.OneToOneField(User, primary_key=True, on_delete= models.CASCADE)
+    user = models.OneToOneField(User, primary_key=True, related_name='profile', on_delete= models.CASCADE)
 
     phone_number = models.CharField(
         verbose_name="Phone Number",

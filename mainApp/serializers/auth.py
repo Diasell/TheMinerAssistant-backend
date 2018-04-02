@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from mainApp.models.userProfile import UserProfileModel
+from mainApp.models.userProfile import UserProfile
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
@@ -32,7 +32,7 @@ class RegisterViewSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
 
     class Meta:
-        model = UserProfileModel
+        model = UserProfile
         fields = (
             'username',
             'password',
@@ -47,7 +47,7 @@ class AddChatIDSerializer(serializers.ModelSerializer):
     """
     Serializer for DRF DOCS for Add Chat ID Endpoint
     """
-    chat_id = serializers.CharField(source='user_userprofilemodel.chat_id')
+    chat_id = serializers.CharField(source='user_userprofile.chat_id')
 
     class Meta:
         model = Token

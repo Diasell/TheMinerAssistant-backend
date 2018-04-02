@@ -17,7 +17,7 @@ from rest_framework.views import APIView
 
 
 # import needed app models
-from mainApp.models.userProfile import UserProfileModel
+from mainApp.models.userProfile import UserProfile
 from mainApp.models.worker import (
     WorkerModel,
     WorkerStats,

@@ -97,7 +97,7 @@ class PoolModel(models.Model):
     avg_hasrate = models.FloatField(verbose_name=u"Pool Avg Rate", default=0.0)
     balance = models.FloatField(verbose_name=u"Pool Balance", default=0.0)
     unconfirmed_balance = models.FloatField(verbose_name=u"Unconfirmed Balance", default=0.0)
-    users = models.ManyToManyField(User, verbose_name="Allowed Users")
+    users = models.ManyToManyField(User, related_name='pool', verbose_name="Allowed Users")
 
     def save(self, *args, **kwargs):
 
